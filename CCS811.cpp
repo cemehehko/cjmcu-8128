@@ -57,9 +57,9 @@ void CCS811::init() {
     uint8_t buffer[] = {APP_START};
     write_data(buffer, 1);
 
-    std::cout << "[CCS811] Configuring measurement mode to Mode 1 - Constant power mode, measuring every 1 sec."
+    std::cout << "[CCS811] Configuring measurement mode to Mode 4 - Constant power mode, sensor measurement every 250ms with interrupts."
               << std::endl;
-    uint8_t measurement_mode[] = {1 << 4};
+    uint8_t measurement_mode[] = {(4 << 4) | 0x8 | 0x4};
     write_to_mailbox(MEAS_MODE, measurement_mode, 1);
 }
 

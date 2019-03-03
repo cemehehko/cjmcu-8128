@@ -5,7 +5,8 @@
 #include <cmath>
 #include <iomanip>
 #include <MQTTClient.h>
-#include <jsoncpp/json//json.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
 
 #define ADDRESS     "tcp://localhost:1883"
 #define CLIENTID    "ExampleClientPub"
@@ -50,21 +51,21 @@ int main() {
 
         float mm = bmp280.get_pressure()*0.750063755419211;
 
-        Json::Value json;
-        json["T1"] = round(t_si7021*10)/10;
-        json["T2"] = round(t_bmp20*10)/10;
-        json["H"] = round(relative_humidity*10)/10;
-        json["CO2"] = ccs811.get_co2();
-        json["TVOC"] = ccs811.get_tvoc();
-        json["P"] = round(mm*10)/10;
+        using namespace rapidjson;
 
-        std::ostringstream stream;
-        Json::StreamWriterBuilder builder;
-        builder.settings_["indentation"] = "";
-        std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
-        writer->write(json, &stream);
+        StringBuffer sb;
+        Writer<StringBuffer> w(sb);
+        w.SetMaxDecimalPlaces(1);
+        w.StartObject();
+        w.Key("T1"); w.Double(t_si7021);
+        w.Key("T2"); w.Double(t_bmp20);
+        w.Key("H"); w.Int(relative_humidity);
+        w.Key("CO2"); w.Int(ccs811.get_co2());
+        w.Key("TVOC"); w.Int(ccs811.get_tvoc());
+        w.Key("P"); w.Double(mm);
+        w.EndObject();
 
-        std::string str = stream.str();
+        std::string str = sb.GetString();
         pubmsg.payload = (void *)str.c_str();
         pubmsg.payloadlen = (int)str.size();
 
